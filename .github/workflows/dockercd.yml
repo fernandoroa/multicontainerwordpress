@@ -1,0 +1,27 @@
+name: Build and Test
+
+#Triggers (uncomment line below to use it)
+on: [push, workflow_dispatch]
+
+#Environment variables https://docs.github.com/en/actions/learn-github-actions/environment-variables
+env:
+  RESOURCE_GROUP: multicontainerResourceGroup
+  APP_PLAN: myMultiAppServicePlan
+  WEBAPP_NAME: firstWordpApp
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in with Azure
+        uses: azure/login@v2
+        with:
+          creds: "${{ secrets.AZURE_CREDENTIALS }}"
+
+      - name: Create webapp resource
+        if: success()
+        run: |
+          az webapp create --resource-group ${{ env.RESOURCE_GROUP }} --plan ${{ env.APP_PLAN }} --name ${{ env.WEBAPP_NAME }} --multicontainer-config-type compose --multicontainer-config-file docker-compose-wordpress.yml
